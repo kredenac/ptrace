@@ -88,11 +88,24 @@ ga proučava. Kada je potrebno da traženi program nastavi izvršavanje onda će
 prvobitna instrukcija na svoje mesto.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Povezivanje}
+\section{Kako radi}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Vaš seminarski rad mora da sadrži najmanje četiri reference u spisku literature. 
-\textbf{Dužina seminarskog rada treba da bude najmanje 4 strane teksta.}
+\emph{ptrace} ima mnogo vrsta zahteva, man stranica je velika, a opis svih njegovih detalja bi mogao da ispuni osrednju knjigu.
+Zato će ovde biti opiasne glavne vrste ptrace zahteva. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Povezivanje}	
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\label{sec:pov}
+\begin{figure}[h!]
+    \begin{center}
+    \includegraphics[scale=1.1]{img/diag.png}
+    \end{center}
+    \caption{Dijagram toka povezivanja procesa.}
+    \label{fig:diag}
+\end{figure}
 
 Tragač može da se poveže na nit korišćenjem poziva:
 
@@ -105,12 +118,8 @@ ili
 \end{verbatim}
 
 PTRACE\_ATTACH salje signal SIGSTOP ciljanoj niti \cite{man}. 
-
-Novije verzije Linux-a imaju opciju 
-
-PTRACE\_SEIZE umesto PTRACE\_ATTACH. 
-
-PTRACE\_SEIZE ne zaustavlja prikačeni proces.
+Novije verzije Linux-a imaju opciju PTRACE\_SEIZE umesto 
+PTRACE\_ATTACH. PTRACE\_SEIZE ne zaustavlja prikačeni proces.
 
 Ako je potrebno zaustavljanje nakon priključenja može se pozvati ptrace sa opcijom PTRACE\_INTERRUPT.
 
@@ -127,13 +136,43 @@ Ne bi trebalo da dete proces pozive PTRACE\_TRACEME ako roditeljski proces to ne
 Nakon pozivanja TRACEME program nastavlja sa izvršavanjem, ali svaki sledeći signal dostavljen tom procesu
 će uslediti njegovom zaustavljanju i njegov roditeljski proces će biti obavešten putem wait(). 
 Jedino signal SIGKILL neće biti prvo prosleđen roditelju nego će se proces zaustaviti svakako.
-
 Za određeni proces samo jedan proces može da mu bude tragač u bilo kom trenutku.
 
 U slučaju da je proces ptraceovan pomoću PTRACE\_ATTACH onda traženi proces nastavlja sa izvršavanjem sve dok ne
 uđe u sistemski poziv, u tom trenutku ga zaustavlja Linux jezgro. Traženom procesu to izgleda kao da je zaustavljen
 jer je primio SIGTRAP signal. Sada tragač može da radi šta mu je volja.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Vrste zahteva}	
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+U sekciji \ref{sec:pov} su uvedeni 
+ATTACH, TRACEME i INTERRUPT i SEIZE tako da ovde neće biti ponovljen opis.
+
+PTRACE\_SINGLESTEP
+    zahtev je jedan od najinteresantnijih. Takav zahtev govori operativnom sistemu: \emph{molim te ponovo pokreni
+    dete proces, ali zaustavi ga čim završi izvršavanje sledeće instrukcije}.
+
+PTRACE\_PEEKTEXT, PTRACE\_PEEKDATA
+    zahtevi čitaju memoriju traženog procesa sa date adrese. Moguće je čitati podatke ali i izvršni kod programa.
+
+PTRACE\_POKETEXT, PTRACE\_POKEDATA
+    zahtevi kopiraju date podatke na zadatu adresu u memoriju traženog procesa.
+    Ova dva zahteva su ekvivalentna pošto Linux nema odvojene segmente za kod i podatke \cite{man}. 
+    Isto važi i za prethodna dva zahteva.
+
+PTRACE\_GETREGS, PTRACE\_GETFPREGS
+    zahtevi kopiraju registre opšte namene, odnosno registre za operacije u pokretnom zarezu 
+    traženog procesa.
+
+PTRACE\_SETREGS, PTRACE\_SETFPREGS
+    zahtevi postavljaju vrednosti registara traženog procesa.
+
+PTRACE\_GETSIGINFO 
+    daje informaciju o signalu zbog kog se traženi program zaustavio.
+
+PTRACE\_CONT
+    zahtevom se nastavlja izvršavanje traženog procesa i po želji se 
+    dopušta ili zabranjuje primanje signala.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Ispod haube}	
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -194,45 +233,15 @@ Dinamičko ubacivanje koda se koristi za omogućavanje debagovanja, ali se isto 
 i za zlonamerne aktivnosti ako napadač ima privilegije da pokrene ptrace.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Slike i tabele}
+\section{Zaključak}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\label{slike_i_tabele}
-
-Slike i tabele treba da budu u svom okruženju, sa odgovarajućim naslovima, obeležene labelom da koje omogućava referenciranje. 
-
-\begin{primer} Ovako se ubacuje slika. Obratiti pažnju da je dodato i 
-\begin{verbatim}
-\usepackage{graphicx}
-\end{verbatim}
-
-\begin{figure}[h!]
-\begin{center}
-\includegraphics[scale=0.75]{img/pande.jpg}
-\end{center}
-\caption{Pande}
-\label{fig:pande}
-\end{figure}
-
-Na svaku sliku neophodno je referisati se negde u tekstu. Na primer, na slici \ref{fig:pande} prikazane su pande. 
-\end{primer}
-
-\begin{table}[h!]
-\begin{center}
-\caption{Razlčita poravnanja u okviru iste tabele ne treba koristiti jer su nepregledna.}
-\begin{tabular}{|c|l|r|} \hline
-centralno poravnanje& levo poravnanje& desno poravnanje\\ \hline
-a &b&c\\ \hline
-d &e&f\\ \hline
-\end{tabular}
-\label{tab:tabela1}
-\end{center}
-\end{table}
-
-
-\subsection{Prvi podnaslov}
-\label{subsec:podnaslov1}
-
+\emph{ptrace} je neverovatno koristan sistemski poziv za debagere, tragače i druge sistemske 
+programe koji treba da kupe korisne informacije iz programa. Spoznavanje svih detalja implementacije 
+je prilicno tesko pošto zavisi od arhitekture procesora, podeljena je u više datoteka od kojih su
+neke pisane u jeziku C, a neke u asembleru. Srećom nije neophodno znati sve deliće koda da bi
+se razumelo šta ptrace radi, a to znanje demistifikuje rad debagera i pruža uvid u različite 
+aspekte operativnog sistema.
 
 \addcontentsline{toc}{section}{Literatura}
 \appendix
@@ -240,6 +249,5 @@ d &e&f\\ \hline
 \bibliographystyle{plain}
 
 \appendix
-
 
 \end{document}
