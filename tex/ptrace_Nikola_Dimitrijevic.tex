@@ -17,14 +17,14 @@
 
 \begin{document}
 
-\title{Sistemski poziv ptrace i njegova uloga u radu debagera.\\ \small{Seminarski rad u okviru kursa\\Verifikacija softvera\\ Matematički fakultet}}
+\title{Sistemski poziv \emph{ptrace} i njegova uloga u radu debagera\\ \small{Seminarski rad u okviru kursa\\Verifikacija softvera\\ Matematički fakultet}}
 
 \author{Nikola Dimitrijević, 1086/2017\\ nikoladim95@gmail.com}
 \maketitle
 
 \abstract{
-    \emph{ptrace} je sistemski poziv u Unix i Unixolikim operativnim sistemima. Ime je skraćenica od ``proces tragač'' (eng.~{\em process trace}).
-    Korišćenjem ptrace jedan proces može da kontroliše drugi. Time upravljački proces ima mogućnost da upravlja unutrašnjim stanjem
+    \emph{ptrace} je sistemski poziv u Unix i njemu sličnim operativnim sistemima. Ime je skraćenica od ``proces tragač'' (eng.~{\em process trace}).
+    Korišćenjem \emph{ptrace} jedan proces može da kontroliše drugi. Time upravljački proces ima mogućnost da upravlja unutrašnjim stanjem
     ciljanog procesa. \emph{ptrace} najviše koriste debageri kako bi mogli da zaustavljaju program, da posmatraju memoriju i menjaju je.
 }
     
@@ -42,19 +42,19 @@ proces kojim on upravlja se naziva traženi  (eng.~{\em tracee}) proces.
 
 Koristi se za implementaciju debagera i praćenja sistemskih poziva.
 Prvo je potrebno da traženi proces bude povezan na tragača. Povezivanje i sve prateće komande se
-zasebno rade po niti procesa. ptrace komande se uvek šalju određenom traženom procesu u sledećem formatu:
+zasebno rade po niti procesa. \emph{ptrace} komande se uvek šalju određenom traženom procesu u sledećem formatu:
 
 \begin{verbatim}
 ptrace(enum zahtev, pid_t proces, void* adresa, void* podaci)
 \end{verbatim}
 
-Argumenti adresa i podaci se koriste ili ignorisu u zavisnosti od vrste zahteva.
+Argumenti adresa i podaci se koriste ili ignorišu u zavisnosti od vrste zahteva.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Upotrebe}
+\section{Primene}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Debageri poput \emph{gdb} koriste ptrace, kao i alati \emph{ltrace}, \emph{strace} i alati za računanje test pokrivenosti koda.
-Povezivanjem na drugi proces korišćenjem ptrace roditeljski proces dobija veliku kontrolu nad ciljanim procesom.
+Debageri poput \emph{gdb} koriste \emph{ptrace}, kao i alati \emph{ltrace}, \emph{strace} i alati za računanje test pokrivenosti koda.
+Povezivanjem na drugi proces korišćenjem \emph{ptrace} roditeljski proces dobija veliku kontrolu nad ciljanim procesom.
 Tu spada:
 \begin{itemize}
     \item desktriptori datoteka
@@ -71,26 +71,26 @@ Menjanjem memorije programa se, pored menjanja podataka programa, može menjati 
 Na taj način kontroler proces može da ubaci tačke prekida  (eng.~{\em brakepoints}) i da izmeni instrukcije 
 programa prilikom njegovog izvršavanja.
 
-Pomenuti alat ltrace služi za prikaz poziva koje program salje deljenim bibliotekama. To radi tako što se zakači na sistem
+Pomenuti alat \emph{ltrace} služi za prikaz poziva koje program šalje deljenim bibliotekama. To radi tako što se zakači na sistem
 za dinamičko punjenje pa tako može da vidi funkcije, parametre i povratne vrednosti poziva biblioteka \cite{lman}.
 
-Alat strace se koristi za debagovanje i dijagnostiku na Linuks operativnom sistemu. 
+Alat \emph{strace} se koristi za debagovanje i dijagnostiku na Linuks operativnom sistemu. 
 Može da vidi i barata sa interakcijama između procesa i Linuks jezgra, što uključuje sistemske pozive, dostavljanja signala 
 i menjanje stanja procesa \cite{sman}.
 Oba alata pokreću zadati program do kraja izvršavanja.
 
-Debagerima je ptrace poput švajcarskog nožića, ali kako zapravo debageri postavljaju tačke prekida? 
+Debagerima je \emph{ptrace} poput švajcarskog nožića, ali kako zapravo debageri postavljaju tačke prekida? 
 Oni zamene instrukciju koja bi trebalo da se izvrši sa instrukcijom zamke 
 (eng.~{\em trap instruction}) \cite{journal}. Kada se traženi proces zaustavi onda program tragač, debager, može da
 ga proučava. Kada je potrebno da traženi program nastavi izvršavanje onda će se umesto tačke prekida vratiti 
 prvobitna instrukcija na svoje mesto.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Kako radi}
+\section{Upotreba i implementacija}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \emph{ptrace} ima mnogo vrsta zahteva, man stranica je velika, a opis svih njegovih detalja bi mogao da ispuni osrednju knjigu.
-Zato će ovde biti opisane glavne vrste ptrace zahteva. 
+Zato će ovde biti opisane glavne vrste \emph{ptrace} zahteva. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Povezivanje}	
@@ -115,7 +115,7 @@ ili
     ptrace(PTRACE_SEIZE, pid, 0, PTRACE_O_FLAGS);
 \end{verbatim}
 
-PTRACE\_ATTACH salje signal SIGSTOP ciljanoj niti \cite{man}. 
+PTRACE\_ATTACH šalje signal SIGSTOP ciljanoj niti \cite{man}. 
 Novije verzije Linux-a imaju opciju PTRACE\_SEIZE umesto 
 PTRACE\_ATTACH. PTRACE\_SEIZE ne zaustavlja prikačeni proces.
 
@@ -136,7 +136,7 @@ Nakon pozivanja TRACEME program nastavlja sa izvršavanjem, ali svaki sledeći s
 Jedino signal SIGKILL neće biti prvo prosleđen roditelju nego će se proces zaustaviti svakako.
 Za određeni proces samo jedan proces može da mu bude tragač u bilo kom trenutku.
 
-U slučaju da je proces ptraceovan pomoću PTRACE\_ATTACH onda traženi proces nastavlja sa izvršavanjem sve dok ne
+U slučaju da je nad procesom pozvan \emph{ptrace} sa PTRACE\_ATTACH onda traženi proces nastavlja sa izvršavanjem sve dok ne
 uđe u sistemski poziv, u tom trenutku ga zaustavlja Linux jezgro. Traženom procesu to izgleda kao da je zaustavljen
 jer je primio SIGTRAP signal. Sada tragač može da radi šta mu je volja. Tok povezivanja prikazan je na slici \ref{fig:diag}.
 
@@ -175,7 +175,7 @@ PTRACE\_CONT
 \subsection{Ispod haube}	
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Kako je kod javno dostupan \cite{code}, može se pogledati implementacija poziva ptrace.
+Kako je kod javno dostupan \cite{code}, može se pogledati implementacija poziva \emph{ptrace}.
 \begin{verbatim}
 if (request == PTRACE_ATTACH || request == PTRACE_SEIZE) {
         ret = ptrace_attach(child, request, addr, data);
@@ -193,7 +193,7 @@ Nakon provere da li je zahtev PTRACE\_ATTACH se poziva ta funkcija.
 Ona prvo postavlja oznake koje će posle biti zabeležene u jezgru kao reprezentacija 
 traženog procesa. Proverava da traženi zadatak (eng.~{\em task}) nije nit jezgra. 
 Takođe proverava da se ne pokušava povezivanje procesa sa samim sobom.
-Sada je traženi proces zaustavljen. Na kraju ptrace zove arch\_ptrace\_attach funkciju koja zavisi
+Sada je traženi proces zaustavljen. Na kraju \emph{ptrace} zove arch\_ptrace\_attach funkciju koja zavisi
 od procesora, tako da je implementaicja usko vezana za konkretnu arhitekturu.
 
 Postavljena je oznaka da je proces tražen, sad je pitanje kada se ta oznaka proverava prilikom 
@@ -221,15 +221,15 @@ Tip povratne vrednosti je long.
 \subsection{Bezbednost}	
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Operativni sistemi pružaju usluge programima preko standardnog API-ja za pristup
+Operativni sistemi pružaju usluge programima preko standardnog API-a za pristup
 hardveru i drugi sistemima niskog nivoa poput sistema datoteka. 
 Kada proces hoće da zove sistemski poziv prvo postavlja svoje argumente u registre i 
 zove softverski prekid. Ovaj prekid govori jezgru da proveri argumente i potom da
 izvrši sistemski poziv.
 
 Dinamičko ubacivanje koda se koristi za omogućavanje debagovanja, ali se isto može koristiti
-i za zlonamerne aktivnosti ako napadač ima privilegije da pokrene ptrace. 
-Postoji način da se dobiju veće privilegije i pristupi zabranjenim delovima tako što se ptrace koristi zajedno
+i za zlonamerne aktivnosti ako napadač ima privilegije da pokrene \emph{ptrace}. 
+Postoji način da se dobiju veće privilegije i pristupi zabranjenim delovima tako što se \emph{ptrace} koristi zajedno
 sa bagom u sinhronizaciji zbog čega kernel napravi nit na nebezbedan način \cite{hack}. 
 Ovaj način napda je popravljen 2003.
 
@@ -241,7 +241,7 @@ Ovaj način napda je popravljen 2003.
 programe koji treba da kupe korisne informacije iz programa. Spoznavanje svih detalja implementacije 
 je prilično teško pošto zavisi od arhitekture procesora, podeljena je u više datoteka od kojih su
 neke pisane u jeziku C, a neke u asembleru. Srećom nije neophodno znati sve deliće koda da bi
-se razumelo šta ptrace radi, a to znanje demistifikuje rad debagera i pruža uvid u različite 
+se razumelo šta \emph{ptrace} radi, a to znanje demistifikuje rad debagera i pruža uvid u različite 
 aspekte operativnog sistema.
 
 \addcontentsline{toc}{section}{Literatura}
