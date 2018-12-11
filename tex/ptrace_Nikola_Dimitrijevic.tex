@@ -194,7 +194,7 @@ Ona prvo postavlja oznake koje će posle biti zabeležene u jezgru kao reprezent
 traženog procesa. Proverava da traženi zadatak (eng.~{\em task}) nije nit jezgra. 
 Takođe proverava da se ne pokušava povezivanje procesa sa samim sobom.
 Sada je traženi proces zaustavljen. Na kraju \emph{ptrace} zove arch\_ptrace\_attach funkciju koja zavisi
-od procesora, tako da je implementaicja usko vezana za konkretnu arhitekturu.
+od procesora, tako da je implementacija usko vezana za konkretnu arhitekturu.
 
 Postavljena je oznaka da je proces tražen, sad je pitanje kada se ta oznaka proverava prilikom 
 sistemskih poziva. Svaki put kada program napravi sistemski poziv, postoji kod zavisan od arhitekture
@@ -231,7 +231,7 @@ Dinamičko ubacivanje koda se koristi za omogućavanje debagovanja, ali se isto 
 i za zlonamerne aktivnosti ako napadač ima privilegije da pokrene \emph{ptrace}. 
 Postoji način da se dobiju veće privilegije i pristupi zabranjenim delovima tako što se \emph{ptrace} koristi zajedno
 sa bagom u sinhronizaciji zbog čega kernel napravi nit na nebezbedan način \cite{hack}. 
-Ovaj način napda je popravljen 2003.
+Ovaj način napada je popravljen 2003.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Zaključak}
